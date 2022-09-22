@@ -1,0 +1,121 @@
+---
+title: "Assigment - kNN DIY"
+author:
+  - Veronika Cintulova - Author
+  - Sandra Tadić - Reviewer
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+   html_notebook:
+    toc: true
+    toc_depth: 2
+---
+
+```{r}
+library(tidyverse)
+library(googlesheets4)
+library(class)
+library(caret)
+```
+
+------------------------------------------------------------------------
+
+Choose a suitable dataset from [this](https://github.com/HAN-M3DM-Data-Mining/assignments/tree/master/datasets) folder and train your own kNN model. Follow all the steps from the CRISP-DM model.
+
+## Business Understanding
+
+Occupancy detection data set This dataset is a set of data such as: Temperature, Light, Humidity and Co2 measurements.These data are being obtained every minute. It is supposed to predict whether the room is occupied or not.This can be very useful when having a big building with a lot of meeting/conference rooms, without having an employee taking care of evidence of occupancy of the rooms. Instead of spending money for an employee, or a camera systems that can disturb the privacy of people in the rooms, this model can predict whether the room is empty or not.
+
+## Data Understanding
+
+```{r}
+url <- "https://raw.githubusercontent.com/HAN-M3DM-Data-Mining/assignments/master/datasets/KNN-occupancy.csv"
+rawDF <- read_csv(url)
+```
+```{r}
+str(rawDF)
+```
+
+The dataset has 7 variables (columns) and 8,146 observations (rows)
+
+## Data Preparation
+
+```{r}
+cleanDF <- rawDF[-1]
+head(cleanDF)
+```
+
+We would like to predict the occupancy of the rooms.
+
+```{r}
+cntOcc <- table(cleanDF$Occupancy)
+propOcc <- round(prop.table(cntOcc) * 100 , digits = 1)
+
+cntOcc
+```
+
+```{r}
+propOcc
+```
+
+```{r}
+cleanDF$Occupancy <- factor(cleanDF$Occupancy, levels = c("0", "1"), labels = c("Non_occupied", "Occupied")) %>% relevel("Occupied")
+head(cleanDF, 10)
+```
+
+```{r}
+summary(cleanDF[c("Temperature", "Humidity", "Light", "CO2")])
+```
+
+```{r}
+normalize <- function(x) { 
+  return ((x - min(x)) / (max(x) - min(x))) 
+}
+
+testSet1 <- c(1:5)
+testSet2 <- c(1:5) * 10
+
+cat("testSet1:", testSet1, "\n")
+
+cat("testSet2:", testSet2, "\n")
+
+cat("Normalized testSet1:", normalize(testSet1), "\n")
+
+cat("Normalized testSet2:", normalize(testSet2))
+```
+
+```{r}
+nCols <- dim(cleanDF)[2]
+cleanDF_n <- sapply(2:nCols,
+                    function(x) {
+  normalize(rawDF[,x])
+}) %>% as.data.frame()
+
+summary(cleanDF_n[c("Temperature", "Humidity", "Light", "CO2")])
+```
+
+```{r}
+trainDF_feat <- cleanDF_n[1:469,  ]
+testDF_feat <- cleanDF_n[470:569,  ]
+```
+
+```{r}
+trainDF_labels <- cleanDF[1:469,  6]
+testDF_labels <- cleanDF[470:569,  6]
+```
+
+## Modeling
+
+```{r}
+cleanDF_test_pred <- knn(train = as.matrix(trainDF_feat), test = as.matrix(testDF_feat), cl = as.matrix(trainDF_labels), k = 21)
+head(cleanDF_test_pred)
+```
+
+## Evaluation and Deployment
+
+```{r}
+confusionMatrix(cleanDF_test_pred, testDF_labels[[1]], positive = NULL, dnn = c("Prediction", "True"))
+```
+
+Prediction is that the room will not be occupied, on the other hand, the positive class from this data-set is: occupied. Either we can see some disadvantages of the KNN model and some model is better to use in this example, or the code could have been done better. I would appreciate the reviewer's or teacher's adivise/suggestions.
+
+reviewer adds suggestions for improving the model
