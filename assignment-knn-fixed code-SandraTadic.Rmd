@@ -94,12 +94,12 @@ summary(cleanDF_n[c("Temperature", "Humidity", "Light", "CO2")])
 ```
 
 ```{r}
-trainDF_feat <- cleanDF_n[1:469,  ]
+trainDF_feat <- cleanDF_n[6:469,  ]
 testDF_feat <- cleanDF_n[470:569,  ]
 ```
 
 ```{r}
-trainDF_labels <- cleanDF[1:469,  6]
+trainDF_labels <- cleanDF[6:469,  6]
 testDF_labels <- cleanDF[470:569,  6]
 ```
 
